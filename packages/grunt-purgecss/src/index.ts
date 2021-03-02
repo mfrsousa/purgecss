@@ -16,29 +16,23 @@ function getAvailableFiles(
 }
 
 function gruntPurgeCSS(grunt: IGrunt): void {
-  grunt.registerMultiTask("purgecss", "Grunt plugin for PurgeCSS", function () {
+  grunt.registerMultiTask("purgecss", "Grunt plugin for PurgeCSS", async function () {
     const done = this.async();
     const options = this.options<UserDefinedOptions>(defaultOptions);
     for (const file of this.files) {
       const source = getAvailableFiles(grunt, file.src);
-      new PurgeCSS()
+      const purgeCSSResults = await new PurgeCSS()
         .purge({
           ...options,
           css: source,
-        })
-        .then((purgeCSSResults) => {
-          if (typeof file.dest === "undefined") {
+        });
+        if (typeof file.dest === "undefined") {
             throw new Error(`Destination file not found`);
           }
 
           grunt.file.write(file.dest, purgeCSSResults[0].css);
           // Print a success message
           grunt.log.writeln(`File "${file.dest}" created.`);
-          done();
-        })
-        .catch(() => {
-          done(false);
-        });
     }
   });
 }
